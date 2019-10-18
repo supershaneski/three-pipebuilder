@@ -1,28 +1,15 @@
 import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
 //import DragControls from 'three-dragcontrols';
-import DragControls from './dragcontrols';
-import Layout from './image/layout.png';
 
+// Using edited dragcontrols module
+import DragControls from './dragcontrols';
+
+import Layout from './image/layout.png';
 import { PipeBuilderJoint, PipeBuilderPipe,  } from './pipeobjects';
 
 
 
-
-export function functionCall(canvas, options) {
-    var testclass = new TestClass(options);
-    //someFunction()
-    return testclass.functionCall(canvas);
-}
-
-export class TestClass {
-    constructor() {
-        console.log("constructor...");
-    }
-    functionCall(s) {
-        console.log(s);
-    }
-}
 
 export default (containerElement) => {
     var objects = [];
@@ -78,26 +65,19 @@ export default (containerElement) => {
         };
     }
 
-    console.log("start three");
-
-    const width = containerElement.offsetWidth; // window.innerWidth;
-    const height = containerElement.offsetHeight; // window.innerHeight;
+    const width = containerElement.offsetWidth;
+    const height = containerElement.offsetHeight;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color( 0xefefff );
-
-    // const camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);
-    // camera.position.z = 5;
-    // camera.lookAt(scene.position);
-
+    
     const defcam = getCameraView();
-    //var frustum = 600;
-    //var aspect = width / height;
     var camwidth = width;
     var camheight = height;
     var camfov = 60;
     //const camera = new THREE.OrthographicCamera( camwidth / - 2, camwidth / 2, camheight / 2, camheight / - 2, 0.1, 10000 );
     const camera = new THREE.PerspectiveCamera( camfov, camwidth / camheight, 0.1, 10000 );
+    
     camera.position.set( defcam.position.x, defcam.position.y, defcam.position.z );
     camera.rotation.x = defcam.rotation.x;
     camera.rotation.y = defcam.rotation.y;
@@ -106,9 +86,6 @@ export default (containerElement) => {
     camera.name = "Camera";
     scene.add( camera );
     
-    // const renderer = new THREE.WebGLRenderer();
-    // renderer.setSize(width, height);
-    // document.body.appendChild(renderer.domElement);
     function createCanvas(document, container) {
         const canvas = document.createElement('canvas');
         canvas.id = "canvas1";
@@ -158,8 +135,8 @@ export default (containerElement) => {
         
         const PIPEBUILDER_JOINTCOLOR_DEFAULT = 0x222222;
         const PIPEBUILDER_JOINTCOLOR_SELECTED = 0x990000;
-        const PIPEBUILDER_PIPECOLOR_DEFAULT = 0x666666;
-        const PIPEBUILDER_PIPECOLOR_EMISSIVE = 0x222222;
+        //const PIPEBUILDER_PIPECOLOR_DEFAULT = 0x666666;
+        //const PIPEBUILDER_PIPECOLOR_EMISSIVE = 0x222222;
 
         event.object.material.color.setHex( PIPEBUILDER_JOINTCOLOR_SELECTED );
         event.object.scale.x = event.object.pipeRadiusScale * 1.25;
@@ -177,7 +154,6 @@ export default (containerElement) => {
 
         selected = event.object;
 
-        console.log("raise event from dragcontrols");
         var event = new CustomEvent(
             "objectSelected", 
             {
@@ -268,9 +244,9 @@ export default (containerElement) => {
         {
             var position = getObjectPosition(event.object);
 
-            var dx = position.x - origpos.x; //orgx;
-            var dy = position.y - origpos.y; //orgy;
-            var dz = position.z - origpos.z; //orgz;
+            var dx = position.x - origpos.x;
+            var dy = position.y - origpos.y;
+            var dz = position.z - origpos.z;
 
             origpos.copy( position );
 
@@ -381,7 +357,6 @@ export default (containerElement) => {
     img.src = Layout;
     
     const geometry = new THREE.BoxGeometry(2, 2, 2);
-    // const material = new THREE.MeshBasicMaterial({ color: 0xddaabb });
     const material = new THREE.MeshNormalMaterial({ flatShading: true });
     var cube = new THREE.Mesh(geometry, material);
     cube.position.set(-2, 0, 0);
@@ -391,7 +366,7 @@ export default (containerElement) => {
             this.rotation.y += 0.01;
         }
     }
-    // scene.add(cube);
+    
     group.add( cube );
 
     const sphere_geometry = new THREE.SphereGeometry( 2, 32, 32 );
@@ -403,13 +378,10 @@ export default (containerElement) => {
             this.rotation.y += 0.01;
         }
     }
-    //scene.add(sphere);
     group.add( sphere );
     
     if(group.update === undefined) {
         group.update = function() {
-            // cube.update();
-            // sphere.update();
             this.rotation.x += 0.005;
             this.rotation.y += 0.005;
         }
@@ -438,28 +410,34 @@ export default (containerElement) => {
 
     function render() {
         requestAnimationFrame(render);
-        
-        //group.update();
-
         renderer.render(scene, camera);
     }
 
     render();
 
-    function testMe(...args) {
+    function handleMessage(...args) {
         
         const msg = args[0];
-        //console.log("message value:", msg.value);
-        // set view test
-        
-        if (msg.name === 'SET_VIEW') {
-            setView( msg.value );
-        } else if(msg.name === 'ADD_NEW') {
-            addNew();
-        } else if(msg.name === 'ADD_JOINT') {
-            addJoint( msg.value );
+        switch(msg.name) {
+            case 'SET_VIEW':
+                setView( msg.value );
+                break;
+            case 'ADD_NEW':
+                addNew();
+                break;
+            case 'ADD_JOINT':
+                addJoint( msg.value );
+                break;
+            case 'GRID_SNAP':
+                snapGrid();
+                break;
+            default:
         }
 
+    }
+
+    const snapGrid = () => {
+        dragControls.toggleSnapGrid();
     }
 
     function getJointPosition( obj )
@@ -549,8 +527,7 @@ export default (containerElement) => {
     }
 
     const setView = (value) => {
-        console.log("change view");
-
+        
         let view = "DEFAULT";
         switch(value) {
             case 1:
@@ -598,8 +575,7 @@ export default (containerElement) => {
     }
 
     const addNew = () => {
-        console.log("add new pipe in scene");
-
+        
         var pos1 = new THREE.Vector3( 100, 50, 0 );
         var cube1 = new PipeBuilderJoint( { position: pos1 } );
         var index1 = objects.push( cube1 );
@@ -640,6 +616,6 @@ export default (containerElement) => {
     }
 
     return (
-        testMe
+        handleMessage
     )
 }

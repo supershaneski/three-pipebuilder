@@ -1,5 +1,6 @@
 import React from 'react';
-import ThreeLoader, { TestClass, functionCall } from './threeloader';
+import ThreeLoader from './threeloader';
+
 const styles = {
     threecontainer: {
         backgroundColor: `#ffffff`,
@@ -19,31 +20,19 @@ class ThreeContainer extends React.Component {
     }
 
     componentDidMount() {
-
-        //functionCall("TEST");
-        //const testo = new TestClass("SEX");
-
+        
         const evento = this.props;
-
-        console.log("container mounted")
-        this.something = ThreeLoader(this.threeRootElement);
+        this.sendMessage = ThreeLoader(this.threeRootElement);
 
         const threecontainer = document.getElementById("threecontainer");
         threecontainer.addEventListener("objectSelected",function(event){
-            console.log("catch event from scene");
             evento.eventHandler(event);
         })
     }
 
     componentDidUpdate() {
         if(this.props.messageHandler.for !== "SCENE") return;
-
-        console.log("threejs component update");
-
-        //console.log(this.props.messageHandler);
-        //console.log(this.something);
-        
-        this.something( this.props.messageHandler );
+        this.sendMessage( this.props.messageHandler );
     }
     
     render() {

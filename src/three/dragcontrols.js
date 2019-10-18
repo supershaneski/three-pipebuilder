@@ -318,6 +318,9 @@ export default function DragControls( _objects, _camera, _domElement ){
 	this.setSnapGrid = function ( flag ) {
 		snapGrid = flag;
 	};
+	this.toggleSnapGrid = function () {
+		snapGrid = !snapGrid;
+	};
 
 	this.setObjects = function () {
 
